@@ -8,14 +8,14 @@ Manage the catalog, helper scripts, missing launch-target downloads, controller 
 
 - `game-library.csv` is authoritative metadata.
 - Catalog targets resolve as `/media/fat/games/<console_dir>/<game_file>`.
+- Each row's `download_url` is the explicit source for that target.
+- Download URLs are public metadata and must not contain credentials or tokens.
 - All populated `hash` values are SHA-1 checksums used to verify new downloads.
 - Generated `.mgl` files are disposable and must not be hand-edited.
-- `/media/fat/.waian/.env` holds the project-specific `GAME_BASE_URL` and is not versioned.
 
 ## Managed layout
 
 - `/media/fat/.waian/repo`: last successfully installed repository snapshot
-- `/media/fat/.waian/.env`: local HTTP source configuration
 - `/media/fat/.waian/controller-maps.json`: upstream controller-map state
 - `/media/fat/game-library.csv`: active catalog copy
 - `/media/fat/*.py`: active helper copies

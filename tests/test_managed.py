@@ -28,6 +28,7 @@ class ManagedLibraryTests(unittest.TestCase):
         mgl_paths = set()
         with (ROOT / "game-library.csv").open(encoding="utf-8-sig", newline="") as source:
             for row in csv.DictReader(source):
+                self.assertIn("download_url", row)
                 relative = sync_games.safe_relative_path(row["console_dir"], row["game_file"])
                 self.assertNotIn(relative, seen)
                 seen.add(relative)
@@ -39,6 +40,15 @@ class ManagedLibraryTests(unittest.TestCase):
                         mgl_paths.add(folded)
         self.assertEqual(2563, len(seen))
         self.assertEqual(6142, len(mgl_paths))
+
+    def test_download_url_must_be_explicit_http(self) -> None:
+        relative = sync_games.safe_relative_path("NES", "Game.nes")
+        self.assertEqual(
+            "https://example.test/Game.nes",
+            sync_games.source_url("https://example.test/Game.nes", relative),
+        )
+        with self.assertRaises(ValueError):
+            sync_games.source_url("", relative)
 
     def test_download_is_atomic_and_hash_checked(self) -> None:
         with tempfile.TemporaryDirectory(dir=ROOT) as directory:

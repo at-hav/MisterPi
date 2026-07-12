@@ -12,20 +12,7 @@ wget -qO- https://raw.githubusercontent.com/at-hav/MisterPi/8cb3967ef0bf7d5743a3
 
 The installed MiSTer image has a 2021 CA bundle that causes its `curl` to reject GitHub's current certificate chain. `wget` on the same image validates GitHub successfully, so the bootstrap and updater use `wget` and never disable TLS verification.
 
-If catalog targets are missing, configure the HTTP mirror during the first install:
-
-```bash
-wget -qO- https://raw.githubusercontent.com/at-hav/MisterPi/8cb3967ef0bf7d5743a3db58e6e5d4306cd96f4d/install.sh \
-  | GAME_BASE_URL=http://10.100.11.1/mister-games bash
-```
-
-The URL is saved in `/media/fat/.waian/.env`, which is never committed. It must mirror paths as:
-
-```text
-<GAME_BASE_URL>/<console_dir>/<game_file>
-```
-
-Each download is written to a temporary sibling, checked against the CSV SHA-1, and atomically renamed into place. Existing games are not downloaded or hashed during a normal update.
+Each CSV row owns its direct HTTP(S) source in `download_url`. A missing target without a URL stops the update. Downloads are written to a temporary sibling, checked against the row's SHA-1, and atomically renamed into place. Existing games are not downloaded or hashed during a normal update. Because the CSV is public, URLs must not contain credentials or private tokens.
 
 After installation, run an on-demand update from the MiSTer Scripts menu or shell:
 
@@ -39,7 +26,7 @@ An update:
 
 1. downloads a clean repository snapshot into `/media/fat/.waian`;
 2. synchronizes `misteraddons/Mister-Input-Maps`, updating previously managed files while preserving local overrides and extra mappings;
-3. detects missing catalog launch targets and downloads them from the configured mirror;
+3. detects missing catalog launch targets and downloads them from their CSV URLs;
 4. builds the complete `_Waian's Picks` menu in a staging directory;
 5. swaps the menu tree and validates every catalog target, core, `.mgl`, and `.mgl` reference;
 6. installs the catalog, helper scripts, and `Scripts/update-waian.sh`.

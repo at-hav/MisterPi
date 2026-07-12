@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Find missing catalog targets and optionally download them from an HTTP mirror."""
+"""Find missing catalog targets and download them from per-row URLs."""
 
 from __future__ import annotations
 
@@ -13,35 +13,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path, PurePosixPath
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Dict, Iterable, Tuple
 
 
 CHUNK_SIZE = 1024 * 1024
-ENV_KEY = "GAME_BASE_URL"
-REQUIRED_COLUMNS = ("console_dir", "game_file", "hash")
-
-
-def read_env_file(path: Optional[Path]) -> Dict[str, str]:
-    values: Dict[str, str] = {}
-    if path is None or not path.exists():
-        return values
-    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.startswith("export "):
-            line = line[7:].lstrip()
-        if "=" not in line:
-            raise ValueError(f"{path}:{number}: expected KEY=VALUE")
-        key, value = line.split("=", 1)
-        key = key.strip()
-        if not re.fullmatch(r"[A-Z_][A-Z0-9_]*", key):
-            raise ValueError(f"{path}:{number}: invalid environment key")
-        value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            value = value[1:-1]
-        values[key] = value
-    return values
+REQUIRED_COLUMNS = ("console_dir", "game_file", "hash", "download_url")
 
 
 def safe_relative_path(console_dir: str, game_file: str) -> PurePosixPath:
@@ -61,12 +37,14 @@ def destination_for(games_root: Path, relative: PurePosixPath) -> Path:
     return destination
 
 
-def source_url(base_url: str, relative: PurePosixPath) -> str:
-    parsed = urllib.parse.urlsplit(base_url)
+def source_url(value: str, relative: PurePosixPath) -> str:
+    url = (value or "").strip()
+    if not url:
+        raise ValueError(f"missing download_url for {relative}")
+    parsed = urllib.parse.urlsplit(url)
     if parsed.scheme not in ("http", "https") or not parsed.netloc:
-        raise ValueError(f"{ENV_KEY} must be an http:// or https:// URL")
-    suffix = "/".join(urllib.parse.quote(part, safe="") for part in relative.parts)
-    return base_url.rstrip("/") + "/" + suffix
+        raise ValueError(f"download_url for {relative} must be an absolute HTTP(S) URL")
+    return url
 
 
 def sha1_file(path: Path) -> str:
@@ -112,8 +90,6 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", required=True, type=Path)
     parser.add_argument("--games-root", default=Path("/media/fat/games"), type=Path)
-    parser.add_argument("--env-file", type=Path)
-    parser.add_argument("--base-url", help=f"HTTP mirror root; overrides {ENV_KEY}")
     parser.add_argument("--no-download", action="store_true", help="Report missing targets without downloading")
     parser.add_argument("--verify-existing", action="store_true", help="SHA-1 check existing files (slow)")
     parser.add_argument("--timeout", default=60, type=int)
@@ -121,8 +97,6 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        file_environment = read_env_file(args.env_file)
-        base_url = args.base_url or os.environ.get(ENV_KEY) or file_environment.get(ENV_KEY, "")
         seen = set()
         missing = []
         verified = 0
@@ -143,12 +117,12 @@ def main() -> int:
             elif destination.exists():
                 raise ValueError(f"Catalog target is not a regular file: {destination}")
             else:
-                missing.append((relative, destination, expected))
+                missing.append((relative, destination, expected, source_url(row["download_url"], relative)))
 
         print(f"Catalog targets: {len(seen)}")
         print(f"Present: {verified}")
         print(f"Missing: {len(missing)}")
-        for relative, _, _ in missing[: args.max_print]:
+        for relative, _, _, _ in missing[: args.max_print]:
             print(f"  - {relative}")
         if len(missing) > args.max_print:
             print(f"  ... and {len(missing) - args.max_print} more")
@@ -157,14 +131,10 @@ def main() -> int:
             return 0
         if args.no_download:
             return 1
-        if not base_url:
-            print(f"ERROR: missing games require {ENV_KEY} in the managed .env file", file=sys.stderr)
-            return 1
-
         downloaded = 0
-        for index, (relative, destination, expected) in enumerate(missing, start=1):
+        for index, (relative, destination, expected, url) in enumerate(missing, start=1):
             print(f"Downloading [{index}/{len(missing)}] {relative}")
-            download(source_url(base_url, relative), destination, expected, args.timeout)
+            download(url, destination, expected, args.timeout)
             downloaded += 1
         print(f"Downloaded: {downloaded}")
         return 0

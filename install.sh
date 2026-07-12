@@ -38,15 +38,6 @@ mkdir -p -- "$MANAGED_ROOT"
 rm -rf -- "$NEW_REPO"
 mv -- "$SOURCE_REPO" "$NEW_REPO"
 
-if [[ -n "${GAME_BASE_URL:-}" ]]; then
-  [[ "$GAME_BASE_URL" != *$'\n'* && "$GAME_BASE_URL" != *$'\r'* ]] || {
-    echo "ERROR: GAME_BASE_URL contains a newline" >&2
-    exit 2
-  }
-  umask 077
-  printf 'GAME_BASE_URL=%s\n' "$GAME_BASE_URL" >"${MANAGED_ROOT}/.env"
-fi
-
 "${NEW_REPO}/manage.sh" "$@"
 rm -rf -- "${MANAGED_ROOT}/repo.previous"
 if [[ -d "${MANAGED_ROOT}/repo" ]]; then

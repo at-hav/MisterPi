@@ -8,7 +8,6 @@ GAMES_ROOT="${FAT_ROOT}/games"
 MENU_NAME="_Waian's Picks"
 MENU_PATH="${FAT_ROOT}/${MENU_NAME}"
 INPUTS_PATH="${FAT_ROOT}/config/inputs"
-ENV_FILE="${MANAGED_ROOT}/.env"
 STATE_FILE="${MANAGED_ROOT}/controller-maps.json"
 STAGE_ROOT="${MANAGED_ROOT}/.mgl-stage.$$"
 BACKUP_MENU="${MANAGED_ROOT}/.menu-previous"
@@ -73,7 +72,6 @@ fi
 game_args=(
   --csv "${REPO_ROOT}/game-library.csv"
   --games-root "$GAMES_ROOT"
-  --env-file "$ENV_FILE"
 )
 (( NO_DOWNLOAD || DRY_RUN )) && game_args+=(--no-download)
 python3 "${REPO_ROOT}/sync_games.py" "${game_args[@]}"

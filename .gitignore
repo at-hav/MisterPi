@@ -1,5 +1,6 @@
 .DS_Store
 ._*
+.~lock.*#
 certs/
 handoff.md
 .env
