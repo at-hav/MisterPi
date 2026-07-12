@@ -19,14 +19,13 @@ if [[ $(id -u) -ne 0 && "${WAIAN_ALLOW_NON_ROOT:-0}" != 1 ]]; then
   echo "ERROR: install.sh must run as root on MiSTer" >&2
   exit 2
 fi
-for command in curl tar bash; do
+for command in wget tar bash; do
   command -v "$command" >/dev/null || { echo "ERROR: required command not found: $command" >&2; exit 2; }
 done
 
 mkdir -p -- "$EXTRACTED"
-curl -fsSL --proto '=https' --tlsv1.2 \
-  "https://codeload.github.com/${REPO_SLUG}/tar.gz/refs/heads/${BRANCH}" \
-  -o "$ARCHIVE"
+wget -qO "$ARCHIVE" \
+  "https://codeload.github.com/${REPO_SLUG}/tar.gz/refs/heads/${BRANCH}"
 tar -xzf "$ARCHIVE" -C "$EXTRACTED"
 
 SOURCE_REPO="$(find "$EXTRACTED" -mindepth 1 -maxdepth 1 -type d -print -quit)"

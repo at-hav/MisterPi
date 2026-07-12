@@ -40,3 +40,5 @@ The catalog models one launch target, not all files needed by multi-file media. 
 ## Validation
 
 Run standard-library-only tests and shell syntax checks. On the target, a successful managed update must end with `check_library.py` reporting zero issues.
+
+The deployed image's `curl` cannot validate GitHub with its 2021 CA bundle. Use its successfully validated `wget` for GitHub bootstrap and repository/controller downloads; never bypass TLS verification.

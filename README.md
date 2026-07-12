@@ -7,13 +7,15 @@ This repository is the source of truth for Waian's curated MiSTer game catalog a
 Install from the MiSTer shell as root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/at-hav/MisterPi/main/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/at-hav/MisterPi/main/install.sh | bash
 ```
+
+The installed MiSTer image has a 2021 CA bundle that causes its `curl` to reject GitHub's current certificate chain. `wget` on the same image validates GitHub successfully, so the bootstrap and updater use `wget` and never disable TLS verification.
 
 If catalog targets are missing, configure the HTTP mirror during the first install:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/at-hav/MisterPi/main/install.sh \
+wget -qO- https://raw.githubusercontent.com/at-hav/MisterPi/main/install.sh \
   | GAME_BASE_URL=http://10.100.11.1/mister-games bash
 ```
 

@@ -9,10 +9,9 @@ import io
 import json
 import os
 import re
+import subprocess
 import sys
-import urllib.error
 import urllib.parse
-import urllib.request
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Dict, List, Optional, Tuple
@@ -62,9 +61,16 @@ def save_state(path: Optional[Path], archive_name: str, files: Dict[str, str]) -
 
 
 def fetch_bytes(url: str, timeout: int) -> bytes:
-    request = urllib.request.Request(url, headers={"User-Agent": "Waian-MisterPi/1"})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return response.read()
+    result = subprocess.run(
+        ["wget", "-qO-", url],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=timeout,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise OSError(f"wget failed for controller-map source (exit {result.returncode})")
+    return result.stdout
 
 
 def newest_archive_entry(entries: List[object]) -> Tuple[str, str]:
@@ -173,7 +179,7 @@ def main() -> int:
         print(f"Unchanged: {unchanged}")
         print(f"Local overrides preserved: {overrides}")
         return 0
-    except (OSError, ValueError, json.JSONDecodeError, urllib.error.URLError, zipfile.BadZipFile) as error:
+    except (OSError, ValueError, json.JSONDecodeError, subprocess.SubprocessError, zipfile.BadZipFile) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 2
 
