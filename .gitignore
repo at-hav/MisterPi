@@ -1,6 +1,7 @@
 .DS_Store
 ._*
 certs/
+handoff.md
 .env
 .claude/
 __pycache__/
