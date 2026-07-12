@@ -7,7 +7,7 @@ This repository is the source of truth for Waian's curated MiSTer game catalog a
 Install from the MiSTer shell as root:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/at-hav/MisterPi/8cb3967ef0bf7d5743a3db58e6e5d4306cd96f4d/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/at-hav/MisterPi/f6b1b46db133c9c56bd1b9e02a01ad68d2c83529/install.sh | bash
 ```
 
 The installed MiSTer image has a 2021 CA bundle that causes its `curl` to reject GitHub's current certificate chain. `wget` on the same image validates GitHub successfully, so the bootstrap and updater use `wget` and never disable TLS verification.
