@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-REPO_SLUG="${WAIAN_REPO_SLUG:-__GITHUB_REPOSITORY__}"
+REPO_SLUG="${WAIAN_REPO_SLUG:-at-hav/MisterPi}"
 BRANCH="${WAIAN_BRANCH:-main}"
 FAT_ROOT="${WAIAN_FAT_ROOT:-/media/fat}"
 MANAGED_ROOT="${WAIAN_MANAGED_ROOT:-${FAT_ROOT}/.waian}"
@@ -15,10 +15,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if [[ "$REPO_SLUG" == "__GITHUB_REPOSITORY__" ]]; then
-  echo "ERROR: repository owner is not configured yet" >&2
-  exit 2
-fi
 if [[ $(id -u) -ne 0 && "${WAIAN_ALLOW_NON_ROOT:-0}" != 1 ]]; then
   echo "ERROR: install.sh must run as root on MiSTer" >&2
   exit 2

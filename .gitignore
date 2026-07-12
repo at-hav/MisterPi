@@ -1,3 +1,6 @@
+.DS_Store
+._*
+certs/
 .env
 .claude/
 __pycache__/

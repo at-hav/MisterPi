@@ -4,16 +4,16 @@ This repository is the source of truth for Waian's curated MiSTer game catalog a
 
 ## Install
 
-The GitHub repository owner still needs to be configured in `install.sh` and `update-waian.sh`. Once configured and published, install from the MiSTer shell as root:
+Install from the MiSTer shell as root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/OWNER/MisterPi/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/at-hav/MisterPi/main/install.sh | bash
 ```
 
 If catalog targets are missing, configure the HTTP mirror during the first install:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/OWNER/MisterPi/main/install.sh \
+curl -fsSL https://raw.githubusercontent.com/at-hav/MisterPi/main/install.sh \
   | GAME_BASE_URL=http://10.100.11.1/mister-games bash
 ```
 
