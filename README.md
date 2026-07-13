@@ -41,6 +41,7 @@ The current CSV identifies one launch target per game. For `.cue` games, that do
 
 ```bash
 python3 sync_games.py --csv game-library.csv --games-root /media/fat/games --no-download
+python3 hash_game_library.py --csv game-library.csv
 python3 waians_picks.py --csv game-library.csv
 python3 check_library.py --csv game-library.csv
 ```

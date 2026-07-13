@@ -11,6 +11,7 @@ Manage the catalog, helper scripts, missing launch-target downloads, controller 
 - Each row's `download_url` is the explicit source for that target.
 - Download URLs are public metadata and must not contain credentials or tokens.
 - All populated `hash` values are SHA-1 checksums used to verify new downloads.
+- `hash_game_library.py` atomically updates the authoritative CSV; it does not create alternate catalogs.
 - Generated `.mgl` files are disposable and must not be hand-edited.
 
 ## Managed layout

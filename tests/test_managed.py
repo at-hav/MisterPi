@@ -12,6 +12,7 @@ import unittest
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +21,7 @@ sys.path.insert(0, str(ROOT))
 import sync_controller_maps
 import sync_games
 import check_library
+import hash_game_library
 
 
 class ManagedLibraryTests(unittest.TestCase):
@@ -49,6 +51,25 @@ class ManagedLibraryTests(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             sync_games.source_url("", relative)
+
+    def test_hasher_updates_authoritative_csv(self) -> None:
+        with tempfile.TemporaryDirectory(dir=ROOT) as directory:
+            root = Path(directory)
+            game = root / "games" / "NES" / "Game.nes"
+            game.parent.mkdir(parents=True)
+            game.write_bytes(b"game")
+            catalog = root / "game-library.csv"
+            catalog.write_text("console_dir,game_file,hash,download_url\nNES,Game.nes,,https://example.test/Game.nes\n")
+            with mock.patch.object(
+                sys,
+                "argv",
+                ["hash_game_library.py", "--csv", str(catalog), "--root", str(root)],
+            ):
+                self.assertEqual(0, hash_game_library.main())
+            with catalog.open(encoding="utf-8", newline="") as source:
+                row = next(csv.DictReader(source))
+            self.assertEqual(hashlib.sha1(b"game").hexdigest(), row["hash"])
+            self.assertFalse(list(root.glob("game-library.csv.tmp.*")))
 
     def test_download_is_atomic_and_hash_checked(self) -> None:
         with tempfile.TemporaryDirectory(dir=ROOT) as directory:

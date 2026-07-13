@@ -10,13 +10,10 @@ MiSTer Pi CSV hasher (SHA-1):
 - Does NOT add any other columns.
 
 Usage (run from /media/fat, as you described):
-  python3 hash_game_library.py --csv game-library.csv --inplace
-
-Write to a new file instead:
-  python3 hash_game_library.py --csv game-library.csv --out game-library.hashed.csv
+  python3 hash_game_library.py --csv game-library.csv
 
 Recompute all hashes:
-  python3 hash_game_library.py --csv game-library.csv --inplace --force
+  python3 hash_game_library.py --csv game-library.csv --force
 """
 
 from __future__ import annotations
@@ -51,9 +48,7 @@ def build_full_path(root: str, console_dir: str, game_file: str) -> str:
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Validate MiSTer game files and store SHA-1 hash in CSV.")
-    p.add_argument("--csv", required=True, help="Input CSV (must include console_dir + game_file).")
-    p.add_argument("--out", default=None, help="Output CSV path (default: <input>.hashed.csv).")
-    p.add_argument("--inplace", action="store_true", help="Overwrite the input CSV in place.")
+    p.add_argument("--csv", required=True, help="CSV to update (must include console_dir + game_file).")
     p.add_argument("--root", default="/media/fat", help="MiSTer root (default: /media/fat).")
     p.add_argument("--hash-col", default="hash", help="Column to store SHA-1 (default: hash).")
     p.add_argument("--force", action="store_true", help="Recompute hash even if hash column already has a value.")
@@ -69,24 +64,14 @@ def main() -> int:
         print(f"ERROR: CSV not found: {in_path}", file=sys.stderr)
         return 2
 
-    if args.inplace and args.out:
-        print("ERROR: Use either --inplace or --out, not both.", file=sys.stderr)
-        return 2
-
     root = norm(args.root)
     games_dir = os.path.join(root, "games")
     if not os.path.isdir(games_dir):
         print(f"ERROR: games directory not found: {games_dir}", file=sys.stderr)
         return 2
 
-    # Output path
-    if args.inplace:
-        out_path = in_path + ".tmp"
-    else:
-        out_path = args.out
-        if out_path is None:
-            base, ext = os.path.splitext(in_path)
-            out_path = f"{base}.hashed{ext or '.csv'}"
+    # Always rewrite the authoritative CSV through an adjacent temporary file.
+    out_path = f"{in_path}.tmp.{os.getpid()}"
 
     total = 0
     hashed = 0
@@ -158,9 +143,8 @@ def main() -> int:
 
                 writer.writerow(row)
 
-    if args.inplace:
-        os.replace(out_path, in_path)
-        out_path = in_path
+    os.replace(out_path, in_path)
+    out_path = in_path
 
     print("Done.")
     print(f"CSV:        {out_path}")
